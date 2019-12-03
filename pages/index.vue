@@ -1,92 +1,78 @@
 <template>
-  <v-layout
-    column
-    justify-center
-    align-center
-  >
-    <v-flex
-      xs12
-      sm8
-      md6
-    >
-      <div class="text-center">
-        <logo />
-        <vuetify-logo />
-      </div>
-      <v-card>
-        <v-card-title class="headline">
-          Welcome to the Vuetify + Nuxt.js template
-        </v-card-title>
-        <v-card-text>
-          <p>Vuetify is a progressive Material Design component framework for Vue.js. It was designed to empower developers to create amazing applications.</p>
-          <p>
-            For more information on Vuetify, check out the <a
-              href="https://vuetifyjs.com"
-              target="_blank"
-            >
-              documentation
-            </a>.
-          </p>
-          <p>
-            If you have questions, please join the official <a
-              href="https://chat.vuetifyjs.com/"
-              target="_blank"
-              title="chat"
-            >
-              discord
-            </a>.
-          </p>
-          <p>
-            Find a bug? Report it on the github <a
-              href="https://github.com/vuetifyjs/vuetify/issues"
-              target="_blank"
-              title="contribute"
-            >
-              issue board
-            </a>.
-          </p>
-          <p>Thank you for developing with Vuetify and I look forward to bringing more exciting features in the future.</p>
-          <div class="text-xs-right">
-            <em><small>&mdash; John Leider</small></em>
-          </div>
-          <hr class="my-3">
-          <a
-            href="https://nuxtjs.org/"
-            target="_blank"
-          >
-            Nuxt Documentation
-          </a>
-          <br>
-          <a
-            href="https://github.com/nuxt/nuxt.js"
-            target="_blank"
-          >
-            Nuxt GitHub
-          </a>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer />
-          <v-btn
-            color="primary"
-            nuxt
-            to="/inspire"
-          >
-            Continue
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-flex>
-  </v-layout>
+  <v-card id="index" class="ma-12 pa-4">
+    <v-form @submit.prevent="getJSON">
+      <v-text-field type="text" v-model="height" required :error-messages="errorMessage" label="身長(m)"/>
+      <v-btn>Send</v-btn>
+    </v-form>
+    <v-simple-table v-if="hasResult">
+      <template v-slot:default>
+        <thead>
+        <tr>
+          <th>
+            低体重
+          </th>
+          <th>
+            標準体重
+          </th>
+          <th>
+            肥満
+          </th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+          <td>
+            {{result.minReq}}
+          </td>
+          <td>
+            {{result.normal}}
+          </td>
+          <td>
+            {{result.maxReq}}
+          </td>
+        </tr>
+        </tbody>
+      </template>
+    </v-simple-table>
+  </v-card>
 </template>
 
 <script>
-import Logo from '~/components/Logo.vue'
-import VuetifyLogo from '~/components/VuetifyLogo.vue'
+  import Logo from '~/components/Logo.vue'
+  import VuetifyLogo from '~/components/VuetifyLogo.vue'
 
-export default {
-  components: {
-    Logo,
-    VuetifyLogo
+  export default {
+    data() {
+      return {
+        height: undefined,
+        hasResult: false,
+        result: {
+          minReq: undefined,
+          normal: undefined,
+          maxReq: undefined,
+        },
+        errorMessage: ""
+      }
+    },
+    methods: {
+      getJSON() {
+        // parse系の仕様で、100pxとか入れるとisNaNはfalseを返してくるので死んでほしい
+        if (typeof this.height === "undefined" || this.height === "" || isNaN(parseFloat(this.height))) {
+          this.errorMessage = "不正な値が入力されました";
+          return
+        } else {
+          this.errorMessage = "";
+        }
+
+        // なのでここで無理やり文字列はかき消す
+        $.getJSON(`http://localhost:12000/bmi.php?height=${parseFloat(this.height)}`)
+          .done((array) => {
+            this.result.minReq = array[0];
+            this.result.normal = array[1];
+            this.result.maxReq = array[2];
+            this.hasResult = true;
+          });
+      }
+    }
   }
-}
 </script>
