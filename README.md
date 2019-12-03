@@ -1,6 +1,6 @@
 # kadai09
 
-> A FRONTEND TASK FOR IDIOT NOOB.
+> A FRONTEND TASK FOR IDIOT NOOB... XD
 
 ## Build Setup
 
